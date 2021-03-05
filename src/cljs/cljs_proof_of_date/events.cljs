@@ -57,9 +57,7 @@
         (js/console.log "logged out: " username "  /  "
                         (.leave gun-user
                                 #js {}
-                                got-user-leave
-                                #_(fn ^:export [d]
-                                    (js/console.log "User ;eave result: " d))))))
+                                got-user-leave))))
     (nav-to "#/")
     {:db (dissoc db :user)}))
 
@@ -231,13 +229,9 @@
 
     (js/console.log "Delete proof: " proof)
 
-
-
     ;; TODO: this doesnt work as intended fully because we need to remove the proof ID from the list, not set the id's contents to nil
     ;; - it is a hack to set it to null because the values are still there, so we are burning precious localstorage space
     ;; - it seems to delete non-user proof, but the user proofs are still there but empty data
-
-
 
     (let [
           ^js/Gun gun      (:gun db)
@@ -259,9 +253,7 @@
 
       {:db db
        ;:fx [[:dispatch [::gun-get-user-proofs user]]]
-
        })))
-
 
 
 
@@ -506,15 +498,10 @@
 
 
 
-
-
-
 (re-frame/reg-event-db
   ::clear-user-data
   (fn [db _]
     (dissoc db :user-info :user)))
-
-
 
 
 
@@ -538,15 +525,13 @@
     d))
 
 
-
-
 (defn ^:export got-username [redirect fetched-username]
   (let [redir (or redirect
                   (str "#/home/" fetched-username))]
     (re-frame/dispatch [::home-page-user-password-login-success
                         fetched-username
                         redir])
-    (js/console.log "user name: " fetched-username " w redir: " redir)))
+    (js/console.log "User name: " fetched-username " w redir: " redir)))
 
 (re-frame/reg-event-fx
   ::init-gun
@@ -554,7 +539,7 @@
     (if (:gun db)
       {:db db}
       (do
-        (js/console.log "init gun, redir: " redirect)
+        (js/console.log "Init gun, redir: " redirect)
         (try (let [
                    gun      (js/Gun. peer-url)
                    ;gun      (js/Gun. )
@@ -566,14 +551,7 @@
                (when (js/Gun.is gun-user)
                  (-> (.get gun-user "alias")
                      (.once
-                       (partial got-username redirect)
-                       #_(fn ^:export [fetched-username]
-                           (let [redir (or redirect
-                                           (str "#/home/" fetched-username))]
-                             (re-frame/dispatch [::home-page-user-password-login-success
-                                                 fetched-username
-                                                 redir])
-                             (js/console.log "user name: " fetched-username " w redir: " redir))))))
+                       (partial got-username redirect))))
 
                ;(when redirect (nav-to redirect))
 
@@ -582,19 +560,3 @@
              (catch ExceptionInfo e
                (js/console.error "Error init GUN: " (js/JSON.stringify e))))))))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; replace all ^:export fn with defn
