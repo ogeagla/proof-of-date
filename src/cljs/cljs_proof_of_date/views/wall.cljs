@@ -16,7 +16,7 @@
 (defn link-to-home-page []
   (let [user (re-frame/subscribe [::subs/home-page-user])]
     [re-com/hyperlink-href
-     :label "User Proofs"
+     :label "User Facts"
      :href (if @user
              (str "#/home/" @user)
              "#/")]))
@@ -32,7 +32,7 @@
      [[re-com/label :label "Search by: "]
       [re-com/single-dropdown
        :choices [{:id :user :label "User"}
-                 {:id :proofhash :label "Hash"}
+                 {:id :facthash :label "Hash"}
                  {:id :label :label "Label"}]
        :model selected-searchterm-id
        :width "100px"
@@ -56,14 +56,14 @@
 
 (def gun-cols
   [{:id :user :header-label "User" :row-label-fn :user :width 100 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :proof-url :header-label "URL" :row-label-fn :proof-url :width 100 :align "left" :vertical-align "middle" :sort-by true}
+   {:id :fact-url :header-label "URL" :row-label-fn :fact-url :width 100 :align "left" :vertical-align "middle" :sort-by true}
    {:id :label :header-label "Label" :row-label-fn :label :width 100 :align "left" :vertical-align "middle" :sort-by true}
    {:id :source-txt :header-label "Source Text" :row-label-fn :source-txt :width 150 :align "left" :vertical-align "middle" :sort-by true}
 
    ;{:id :path :header-label "Path" :row-label-fn :path :width 200 :align "left" :vertical-align "middle" :sort-by true}
    {:id :tx-ts :header-label "TxTs" :row-label-fn :tx-ts :width 400 :align "left" :vertical-align "middle" :sort-by true}
    ;{:id :tx-id :header-label "TxID" :row-label-fn :tx-id :width 270 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :proofhash :header-label "Hash" :row-label-fn :proofhash :width 500 :align "left" :vertical-align "middle" :sort-by true}])
+   {:id :facthash :header-label "Hash" :row-label-fn :facthash :width 500 :align "left" :vertical-align "middle" :sort-by true}])
 
 
 
@@ -80,20 +80,20 @@
 
 
 (defn data-panel []
-  (let [all-gun-proofs (re-frame/subscribe [::subs/wall-page-gun-proofs])]
+  (let [all-gun-facts (re-frame/subscribe [::subs/wall-page-gun-facts])]
 
-    (js/console.log "gun wall proofs: " @all-gun-proofs)
+    (js/console.log "gun wall facts: " @all-gun-facts)
 
     (reset! wall-gun-table* (vec
                               (map
-                                #(assoc % :proof-url [re-com/hyperlink-href
-                                                      :label "proof"
-                                                      :href (str "#/proof/"
+                                #(assoc % :fact-url [re-com/hyperlink-href
+                                                      :label "fact"
+                                                      :href (str "#/fact/"
                                                                  (goog.string/replaceAll
                                                                    (:path %)
                                                                    "/"
                                                                    "|"))])
-                                @all-gun-proofs)))
+                                @all-gun-facts)))
     [re-com/v-box
      :gap "1em"
      :children [[table wall-gun-table*]]]))

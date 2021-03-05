@@ -31,7 +31,7 @@
    ;{:id :path :header-label "Path" :row-label-fn :path :width 400 :align "left" :vertical-align "middle" :sort-by true}
    {:id :tx-ts :header-label "TxTs" :row-label-fn :tx-ts :width 400 :align "left" :vertical-align "middle" :sort-by true}
    ;{:id :tx-id :header-label "TxID" :row-label-fn :tx-id :width 270 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :proofhash :header-label "Hash" :row-label-fn :proofhash :width 500 :align "left" :vertical-align "middle" :sort-by true}])
+   {:id :facthash :header-label "Hash" :row-label-fn :facthash :width 500 :align "left" :vertical-align "middle" :sort-by true}])
 
 
 (defn- table [table*]
@@ -42,53 +42,53 @@
    :row-height 40])
 
 
-(defn- create-proof-view [user]
-  (let [proof-input-label  (reagent/atom nil)
-        proof-input-secret (reagent/atom nil)]
+(defn- create-fact-view [user]
+  (let [fact-input-label  (reagent/atom nil)
+        fact-input-secret (reagent/atom nil)]
     [re-com/h-box
      :gap "1em"
      :children
      [[re-com/label :label "Name: "]
       [re-com/input-text
-       :model proof-input-label
+       :model fact-input-label
        :width "100px"
-       :on-change #(reset! proof-input-label %)]
+       :on-change #(reset! fact-input-label %)]
       [re-com/label :label "Content: "]
       [re-com/input-text
-       :model proof-input-secret
+       :model fact-input-secret
        :width "100px"
-       :on-change #(reset! proof-input-secret %)]
+       :on-change #(reset! fact-input-secret %)]
 
       [re-com/button
        :label "save"
        :on-click
        (fn []
 
-         (re-frame/dispatch-sync [::events/home-page-save-proof-btn-press
-                                  user @proof-input-label @proof-input-secret])
-         (re-frame/dispatch-sync [::events/gun-get-user-proofs user]))]
+         (re-frame/dispatch-sync [::events/home-page-save-fact-btn-press
+                                  user @fact-input-label @fact-input-secret])
+         (re-frame/dispatch-sync [::events/gun-get-user-facts user]))]
       [re-com/button
        :label "cancel"
        :on-click (fn []
-                   (re-frame/dispatch-sync [::events/home-page-cancel-proof-btn-press]))]
+                   (re-frame/dispatch-sync [::events/home-page-cancel-fact-btn-press]))]
       [re-com/label
        :label (str (js/Date))]]]))
 
 
-(defn- proof-secret [{:keys [user label source-txt proofhash tx-id tx-ts]
-                      :as   proof}
-                     is-editing-unlock-proof
+(defn- fact-secret [{:keys [user label source-txt facthash tx-id tx-ts]
+                      :as   fact}
+                     is-editing-unlock-fact
                      unlock-text]
-  (when (and user label proofhash tx-id tx-ts)
+  (when (and user label facthash tx-id tx-ts)
     (assoc
-      proof
+      fact
       :delete
       [re-com/button
        :label "Delete"
        :style {:width "60px"}
        :on-click
        (fn []
-         (re-frame/dispatch-sync [::events/gun-delete-proof proof]))]
+         (re-frame/dispatch-sync [::events/gun-delete-fact fact]))]
       :source-txt
       [re-com/h-box
        :gap "0.25em"
@@ -113,12 +113,12 @@
                    :style {:width "60px"}
                    :on-click
                    (fn []
-                     (re-frame/dispatch-sync [::events/gun-hide-proof proof]))]]
+                     (re-frame/dispatch-sync [::events/gun-hide-fact fact]))]]
           "")
 
 
         (if (and (not source-txt)
-                 (not is-editing-unlock-proof))
+                 (not is-editing-unlock-fact))
           [re-com/box
            :size "auto"
            :width "60px"
@@ -128,20 +128,20 @@
                    :on-click
                    (fn []
                      (js/console.warn "show try unlock: " tx-id)
-                     (re-frame/dispatch-sync [::events/home-page-proof-add-unlock-btn-press tx-id]))]]
+                     (re-frame/dispatch-sync [::events/home-page-fact-add-unlock-btn-press tx-id]))]]
           "")
 
 
         (if (and (not source-txt)
-                 is-editing-unlock-proof
-                 (= is-editing-unlock-proof tx-id))
+                 is-editing-unlock-fact
+                 (= is-editing-unlock-fact tx-id))
           [re-com/modal-panel
            :wrap-nicely? true
            :child
            [re-com/v-box
             :gap "0.75em"
             :children
-            [[re-com/label :label proofhash]
+            [[re-com/label :label facthash]
              [re-com/label :label "Unhide source text?"]
              [re-com/input-text
               :model unlock-text
@@ -151,20 +151,20 @@
               :label "Cancel"
               :on-click (fn []
                           (re-frame/dispatch-sync
-                            [::events/home-page-proof-cancel-unlock-btn-press]))]
+                            [::events/home-page-fact-cancel-unlock-btn-press]))]
              [re-com/button
               :label "Save!"
               :on-click (fn []
                           (re-frame/dispatch-sync
-                            [::events/home-page-proof-save-unlock-btn-press
-                             user label tx-id @unlock-text proofhash]))]]]]
+                            [::events/home-page-fact-save-unlock-btn-press
+                             user label tx-id @unlock-text facthash]))]]]]
           "")]])))
 
 
-(defn- table-data [user-proofs is-editing-unlock-proof unlock-text]
+(defn- table-data [user-facts is-editing-unlock-fact unlock-text]
   (->>
-    user-proofs
-    (map #(proof-secret % is-editing-unlock-proof unlock-text))
+    user-facts
+    (map #(fact-secret % is-editing-unlock-fact unlock-text))
     (remove nil?)
     vec))
 
@@ -173,13 +173,13 @@
 
 
 (defn- panel []
-  (let [user-gun-proofs         (re-frame/subscribe [::subs/home-page-gun-proofs])
-        is-editing-proof        (re-frame/subscribe [::subs/home-page-proof-editing])
+  (let [user-gun-facts         (re-frame/subscribe [::subs/home-page-gun-facts])
+        is-editing-fact       (re-frame/subscribe [::subs/home-page-fact-editing])
         user                    (re-frame/subscribe [::subs/home-page-user])
-        is-editing-unlock-proof (re-frame/subscribe [::subs/home-page-unlock-proof-editing])
+        is-editing-unlock-fact (re-frame/subscribe [::subs/home-page-unlock-fact-editing])
         unlock-text3            (reagent/atom nil)]
-    (js/console.log "User proofs: " @user-gun-proofs)
-    (reset! gun-table* (table-data @user-gun-proofs @is-editing-unlock-proof unlock-text3))
+    (js/console.log "User facts: " @user-gun-facts)
+    (reset! gun-table* (table-data @user-gun-facts @is-editing-unlock-fact unlock-text3))
 
     [re-com/v-box
      :gap "0.75em"
@@ -188,14 +188,14 @@
        :gap "0.75em"
        :children
        [[:label (if @user "Current user: " "") @user]]]
-      (if @is-editing-proof
-        [create-proof-view @user]
+      (if @is-editing-fact
+        [create-fact-view @user]
         (if @user
           [re-com/button
-           :label "add proof"
+           :label "add fact"
            :on-click (fn []
-                       (re-frame/dispatch-sync [::events/home-page-add-proof-btn-press]))]
-          [:p "Set user to create proofs"]))
+                       (re-frame/dispatch-sync [::events/home-page-add-fact-btn-press]))]
+          [:p "Set user to create facts"]))
       [table gun-table*]]]))
 
 

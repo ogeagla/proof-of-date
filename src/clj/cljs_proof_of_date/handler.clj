@@ -14,8 +14,8 @@
 
 (def ^:private home-throttle
   (throttle/make-throttler
-    :unlock-proof-throttle
-    :attempts-threshold 10
+    :home-throttle
+    :attempts-threshold 100
     :attempt-ttl-ms 1000))
 
 (defroutes
@@ -23,7 +23,7 @@
 
   (GET "/" []
     (fn [req]
-      (println (Date.) " Get home page: " {:ip (:remote-addr req)})
+      ;(println (Date.) " Get home page: " {:ip (:remote-addr req)})
       (throttle/check home-throttle {:ip (:remote-addr req)})
       (resource-response "index.html" {:root "public"})))
   (GET "/health" [] "OK")
@@ -34,6 +34,7 @@
     (fn [handler]
       (println :404 (:remote-addr handler) (:uri handler))
       "<h1>Page not found</h1>")))
+
 
 
 (def handler

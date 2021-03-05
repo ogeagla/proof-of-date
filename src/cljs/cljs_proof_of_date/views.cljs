@@ -5,7 +5,7 @@
     [cljs-proof-of-date.views.home :as home-view]
     [cljs-proof-of-date.views.user :as user-view]
     [cljs-proof-of-date.views.wall :as wall-view]
-    [cljs-proof-of-date.views.proof :as proof-view]
+    [cljs-proof-of-date.views.fact :as fact-view]
     [cljs-proof-of-date.views.donate :as donate-view]
     [cljs-proof-of-date.events :as events]
     [cljs-proof-of-date.subs :as subs]))
@@ -35,7 +35,7 @@
       :user-panel [user-view/user-panel]
       :home-panel [home-view/home-panel]
       :wall-panel [wall-view/wall-panel true]
-      :proof-panel [proof-view/proof-panel]
+      :fact-panel [fact-view/fact-panel]
       [:div])]])
 
 (defn show-panel [panel-name]
@@ -53,7 +53,8 @@
 
 
 ;; TODO next:
-;; - user can delete a proof entirely
+;; x user can delete a fact entirely
+;; - better fact delete
 ;; - donate section
 ;; - update wall search panel
 ;; - look at orbitdb / 3box

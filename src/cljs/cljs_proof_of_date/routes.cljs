@@ -23,24 +23,24 @@
   ;; define routes here
   (defroute "/" []
     (re-frame/dispatch-sync [::events/clear-user-data])
-    (re-frame/dispatch-sync [::events/gun-get-all-proofs false])
+    (re-frame/dispatch-sync [::events/gun-get-all-facts false])
     (re-frame/dispatch [::events/set-active-panel :home-panel]))
 
   (defroute "/wall" []
-    (re-frame/dispatch-sync [::events/gun-get-all-proofs true])
+    (re-frame/dispatch-sync [::events/gun-get-all-facts true])
     (re-frame/dispatch [::events/set-active-panel :wall-panel]))
 
-  (defroute "/proof/:key-id" [key-id]
-    (js/console.log "Proof route: " key-id)
-    (re-frame/dispatch-sync [::events/gun-get-proof key-id true ])
-    (re-frame/dispatch [::events/set-active-panel :proof-panel]))
+  (defroute "/fact/:key-id" [key-id]
+    (js/console.log "Fact route: " key-id)
+    (re-frame/dispatch-sync [::events/gun-get-fact key-id true ])
+    (re-frame/dispatch [::events/set-active-panel :fact-panel]))
 
   (defroute "/home/:username" [username]
 
     (js/console.log "Home user route: " username)
 
     (re-frame/dispatch-sync [::events/home-page-set-user username])
-    (re-frame/dispatch-sync [::events/gun-get-user-proofs username])
+    (re-frame/dispatch-sync [::events/gun-get-user-facts username])
     (re-frame/dispatch [::events/set-active-panel :user-panel])
     )
 

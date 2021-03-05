@@ -34,15 +34,15 @@
 
 
 (re-frame/reg-event-fx
-  ::home-page-add-proof-btn-press
+  ::home-page-add-fact-btn-press
   (fn [{:keys [db]} _]
-    {:db (assoc db :home-page-add-proof-editing true)}))
+    {:db (assoc db :home-page-add-fact-editing true)}))
 
 
 (re-frame/reg-event-fx
-  ::home-page-proof-add-unlock-btn-press
+  ::home-page-fact-add-unlock-btn-press
   (fn [{:keys [db]} [_ tx-id]]
-    {:db (assoc db :home-page-proof-unlock-editing tx-id)}))
+    {:db (assoc db :home-page-fact-unlock-editing tx-id)}))
 
 
 (defn ^:export got-user-leave [d]
@@ -90,15 +90,11 @@
                      (when-not post-init?
                        (.leave gun-user
                                #js {}
-                               got-user-leave
-                               #_(fn ^:export [d]
-                                   (js/console.log "User ;eave result: " d)))))
+                               got-user-leave)))
             (js/console.log "gun bfore auth: " gun-user)
             (.auth gun-user username password
                    (partial got-user-auth username)
-                   #js {}))
-
-          )
+                   #js {})))
         (catch ExceptionInfo e
           (js/console.error "Error handling login: " (js/JSON.stringify e))))
 
@@ -162,33 +158,32 @@
       {:db (dissoc db :login-message)})))
 
 
-(defn ^:export got-user-proof [username data key]
-  (re-frame/dispatch [::gun-got-user-proof username key data]))
+(defn ^:export got-user-fact [username data key]
+  (re-frame/dispatch [::gun-got-user-fact username key data]))
 
 
 (re-frame/reg-event-fx
-  ::gun-get-user-proofs
+  ::gun-get-user-facts
   (fn [{:keys [db]} [_ username]]
-    (js/console.log "::gun-get-user-proofs" username)
     (let [^js/Gun gun-user (:gun-user db)
           ^js/Gun gun      (:gun db)]
       (if gun-user
-        (do (-> (.get gun-user "user-proofs")
+        (do (-> (.get gun-user "user-facts")
                 (.get username)
                 (.map)
                 (.on
-                  (partial got-user-proof username))))
+                  (partial got-user-fact username))))
         (do
           (js/console.log "user not logged in")
           (re-frame/dispatch [::init-gun])
-          (re-frame/dispatch [::gun-get-user-proofs username]))))
+          (re-frame/dispatch [::gun-get-user-facts username]))))
     {:db (assoc db :user username
-                   :gun-user-proofs [])
-     :fx [[:dispatch [::gun-get-all-proofs false]]]}))
+                   :gun-user-facts [])
+     :fx [[:dispatch [::gun-get-all-facts false]]]}))
 
 
 (re-frame/reg-event-fx
-  ::gun-got-user-proof
+  ::gun-got-user-fact
   (fn [{:keys [db]} [_ username key data]]
     (let [
           data-map   (js->clj data)
@@ -196,188 +191,195 @@
                             (js/parseInt
                               (get-in data-map ["_" ">" "label"]))))
           path       (str (get-in data-map ["_" "#"]))
-          old-map    (:gun-user-proofs db)
+          old-map    (:gun-user-facts db)
           d          {:recv-acct-id "recv-acct-id"
                       :send-acct-id "send-acct-id"
                       :label        (get data-map "label")
                       :user         username
                       :source-txt   (get data-map "secret")
-                      :proofhash    (get data-map "digest")
+                      :facthash    (get data-map "digest")
                       :path         path
                       :tx-id        key
                       :tx-ts        timestamps}
           new-map    (vec (set (concat [d] old-map)))]
-      {:db (assoc db :gun-user-proofs new-map)})))
+      {:db (assoc db :gun-user-facts new-map)})))
 
 
-(defn ^:export get-user-proofs [user ]
-  (re-frame/dispatch [::gun-get-user-proofs user]) )
+(defn ^:export get-user-facts [user ]
+  (re-frame/dispatch [::gun-get-user-facts user]) )
 
-(defn- get-wall-proof-from-db [db-proofs match-user
+(defn- get-wall-fact-from-db [db-facts match-user
                                match-hash
                                match-label]
-  (->> db-proofs
-       (filter (fn [{:keys [user proofhash label]}]
+  (->> db-facts
+       (filter (fn [{:keys [user facthash label]}]
                  (and (= user match-user)
-                      (= proofhash match-hash)
+                      (= facthash match-hash)
                       (= label match-label))))
        first))
 
 (re-frame/reg-event-fx
-  ::gun-delete-proof
-  (fn [{:keys [db]} [_ proof]]
+  ::gun-delete-fact
+  (fn [{:keys [db]} [_ fact]]
 
-    (js/console.log "Delete proof: " proof)
+    (js/console.log "Delete fact: " fact)
 
-    ;; TODO: this doesnt work as intended fully because we need to remove the proof ID from the list, not set the id's contents to nil
+
+
+
+    ;; TODO: this doesnt work as intended fully because we need to remove the fact ID from the list, not set the id's contents to nil
     ;; - it is a hack to set it to null because the values are still there, so we are burning precious localstorage space
-    ;; - it seems to delete non-user proof, but the user proofs are still there but empty data
+    ;; - it seems to delete non-user fact, but the user facts are still there but empty data
+
+
+
 
     (let [
           ^js/Gun gun      (:gun db)
           ^js/Gun gun-user (:gun-user db)
-          {:keys [source-txt label proofhash user tx-id]} proof
-          wall-data        (get-wall-proof-from-db (:gun-wall-proofs db) user
-                                                   proofhash
-                                                   label)
-          _                (-> (.get gun-user "user-proofs")
+          {:keys [source-txt label facthash user tx-id]} fact
+          wall-data        (get-wall-fact-from-db (:gun-wall-facts db) user
+                                                  facthash
+                                                  label)
+          _                (-> (.get gun-user "user-facts")
                                (.get user)
                                (.get tx-id)
-                               (.put  nil (partial get-user-proofs user)))
+                               (.put nil (partial get-user-facts user)))
 
           _                (when wall-data
-                             (-> (.get gun "user-proofs")
+                             (-> (.get gun "user-facts")
                                  (.get user)
                                  (.get (:tx-id wall-data))
                                  (.put  nil)))]
 
       {:db db
-       ;:fx [[:dispatch [::gun-get-user-proofs user]]]
+       ;:fx [[:dispatch [::gun-get-user-facts user]]]
        })))
 
 
 
+
 (re-frame/reg-event-fx
-  ::gun-hide-proof
+  ::gun-hide-fact
   (fn [{:keys [db]} [_ data]]
     (let [^js/Gun gun      (:gun db)
           ^js/Gun gun-user (:gun-user db)
 
-          {:keys [source-txt label proofhash user tx-id]} data
-          _                (-> (.get gun-user "user-proofs")
+          {:keys [source-txt label facthash user tx-id]} data
+          _                (-> (.get gun-user "user-facts")
                                (.get user)
                                (.get tx-id)
                                (.put #js {:label    label
-                                          :digest   proofhash
+                                          :digest   facthash
                                           :secret   nil
                                           :username user}))
           del-label        label
-          del-hash         proofhash
+          del-hash         facthash
           del-user         user
-          wall-data        (get-wall-proof-from-db (:gun-wall-proofs db) del-user
-                                                   del-hash
-                                                   del-label)
+          wall-data        (get-wall-fact-from-db (:gun-wall-facts db) del-user
+                                                  del-hash
+                                                  del-label)
 
           _                (when wall-data
-                             (-> (.get gun "user-proofs")
+                             (-> (.get gun "user-facts")
                                  (.get user)
                                  (.get (:tx-id wall-data))
                                  (.put #js {:label    label
-                                            :digest   proofhash
+                                            :digest   facthash
                                             :secret   nil
                                             :username user})))]
 
-      (js/console.info "hide user proof txt: " data
-                       " , wall proof: " wall-data)
+      (js/console.info "hide user fact txt: " data
+                       " , wall fact: " wall-data)
       {:db db
-       :fx [[:dispatch [::gun-get-user-proofs user]]]})))
+       :fx [[:dispatch [::gun-get-user-facts user]]]})))
 
 
 
 (re-frame/reg-event-fx
-  ::home-page-proof-cancel-unlock-btn-press
+  ::home-page-fact-cancel-unlock-btn-press
   (fn [{:keys [db]} _]
-    {:db (assoc db :home-page-proof-unlock-editing false)}))
+    {:db (assoc db :home-page-fact-unlock-editing false)}))
 
 
 
 
 
 (re-frame/reg-event-fx
-  ::home-page-cancel-proof-btn-press
+  ::home-page-cancel-fact-btn-press
   (fn [{:keys [db]} _]
-    {:db (assoc db :home-page-add-proof-editing false)}))
+    {:db (assoc db :home-page-add-fact-editing false)}))
 
 
 (re-frame/reg-event-fx
-  ::home-page-proof-save-unlock-btn-press
-  (fn [{:keys [db]} [_ puser plabel ptx-id pcandidate-txt pproofhash]]
+  ::home-page-fact-save-unlock-btn-press
+  (fn [{:keys [db]} [_ puser plabel ptx-id pcandidate-txt pfacthash]]
 
     (js/console.warn
       "Try unlock. u = " puser
       " , l = " plabel
       " , txid = " ptx-id
       " , txt = " pcandidate-txt
-      " , h = " pproofhash)
+      " , h = " pfacthash)
 
     (let [^js/Gun gun      (:gun db)
           ^js/Gun gun-user (:gun-user db)
           phash            (digest/get-sha256-str pcandidate-txt)
-          correct?         (= phash pproofhash)]
+          correct?         (= phash pfacthash)]
 
       (if correct?
         (do
 
-          (-> (.get gun-user "user-proofs")
+          (-> (.get gun-user "user-facts")
               (.get puser)
               (.get ptx-id)
               (.put #js {:label    plabel
-                         :digest   pproofhash
+                         :digest   pfacthash
                          :secret   pcandidate-txt
                          :username puser}))
-          (let [wall-data (->> (:gun-wall-proofs db)
-                               (filter (fn [{:keys [user proofhash label]}]
+          (let [wall-data (->> (:gun-wall-facts db)
+                               (filter (fn [{:keys [user facthash label]}]
                                          (and (= user puser)
-                                              (= proofhash pproofhash)
+                                              (= facthash pfacthash)
                                               (= label plabel))))
                                first)
 
                 _         (when wall-data
-                            (-> (.get gun "user-proofs")
+                            (-> (.get gun "user-facts")
                                 (.get puser)
                                 (.get (:tx-id wall-data))
                                 (.put #js {:label    plabel
-                                           :digest   pproofhash
+                                           :digest   pfacthash
                                            :secret   pcandidate-txt
                                            :username puser})))]))
-        (js/console.log "Incorrect src text: " pcandidate-txt " -> " phash " != " pproofhash))
-      {:db (assoc db :home-page-proof-unlock-editing (not correct?))})))
+        (js/console.log "Incorrect src text: " pcandidate-txt " -> " phash " != " pfacthash))
+      {:db (assoc db :home-page-fact-unlock-editing (not correct?))})))
 
 
 
 
 (re-frame/reg-event-fx
-  ::home-page-save-proof-btn-press
+  ::home-page-save-fact-btn-press
   (fn [{:keys [db]} [_ user label secret]]
     (let [^js/Gun gun      (:gun db)
           ^js/Gun gun-user (:gun-user db)
           digest           (digest/get-sha256-str secret)
 
-          _                (js/console.log "JSON proof has digest: " digest)
+          _                (js/console.log "JSON fact has digest: " digest)
 
-          _                (-> (.get gun-user "user-proofs")
+          _                (-> (.get gun-user "user-facts")
                                (.get user)
                                (.set #js {:label    label
                                           :secret   secret
                                           :digest   digest
                                           :username user}))
-          _                (-> (.get gun "user-proofs")
+          _                (-> (.get gun "user-facts")
                                (.get user)
                                (.set #js {:label    label
                                           :secret   secret
                                           :digest   digest
                                           :username user}))]
-      {:db (assoc db :home-page-add-proof-editing false
+      {:db (assoc db :home-page-add-fact-editing false
                      )})))
 
 
@@ -388,59 +390,59 @@
 
 
 (re-frame/reg-event-fx
-  ::gun-got-proof
-  (fn [{:keys [db]} [_ key-path proof tx-id tx-ts]]
-    (let [data-map (js->clj proof)
+  ::gun-got-fact
+  (fn [{:keys [db]} [_ key-path fact tx-id tx-ts]]
+    (let [data-map (js->clj fact)
           d        {:label      (get data-map "label")
                     :user       (get data-map "username")
                     :source-txt (get data-map "secret")
-                    :proofhash  (get data-map "digest")
+                    :facthash  (get data-map "digest")
                     :path       key-path
                     :tx-id      tx-id
                     :tx-ts      tx-ts}]
-      (js/console.log "got proof : " d)
-      {:db (assoc db :gun-proof d)})))
+      (js/console.log "got fact : " d)
+      {:db (assoc db :gun-fact d)})))
 
 
 
-(defn ^:export got-single-proof [key-path proof]
+(defn ^:export got-single-fact [key-path fact]
   (let [timestamps (str (js/Date.
                           (js/parseInt
-                            (get-in (js->clj proof) ["_" ">" "label"]))))]
-    (re-frame/dispatch [::gun-got-proof
+                            (get-in (js->clj fact) ["_" ">" "label"]))))]
+    (re-frame/dispatch [::gun-got-fact
                         key-path
-                        proof
+                        fact
                         (last (goog.string/splitLimit key-path "/" 100))
                         timestamps])))
 
 
 (re-frame/reg-event-fx
-  ::gun-get-proof
+  ::gun-get-fact
   (fn [{:keys [db]} [_ key-id redir?]]
     (let [key-path (goog.string/replaceAll key-id "|" "/")
           gun      (:gun db)
-          redir    (if redir? (str "#/proof/" key-id)
+          redir    (if redir? (str "#/fact/" key-id)
                               false)]
 
-      (js/console.log "get proof for path: " key-path " , redir? " redir? " , redir=" redir)
+      (js/console.log "get fact for path: " key-path " , redir? " redir? " , redir=" redir)
 
       (if-not gun
         (do (re-frame/dispatch [::init-gun redir])
-            (re-frame/dispatch [::gun-get-proof key-id redir?]))
+            (re-frame/dispatch [::gun-get-fact key-id redir?]))
         (do
           (js/console.log "authorized, making rpoof req...")
           (-> (.get gun key-path)
               (.once
-                (partial got-single-proof key-path)))))
+                (partial got-single-fact key-path)))))
 
       {:db db})))
 
 
-(defn ^:export got-wall-proof [doc-key data2]
+(defn ^:export got-wall-fact [doc-key data2]
   (let [timestamps (str (js/Date.
                           (js/parseInt
                             (get-in (js->clj data2) ["_" ">" "label"]))))]
-    (re-frame/dispatch [::gun-got-wall-proof
+    (re-frame/dispatch [::gun-got-wall-fact
                         doc-key
                         data2
                         (last (goog.string/splitLimit doc-key "/" 100))
@@ -448,7 +450,7 @@
 
 
 
-(defn ^:export got-wall-proofs [gun data key]
+(defn ^:export got-wall-facts [gun data key]
   (let [clj-data (js->clj data)
         doc-keys (->> (dissoc clj-data "_")
                       vals
@@ -457,44 +459,45 @@
     (doseq [doc-key doc-keys]
       (-> (.get gun doc-key)
           (.once
-            (partial got-wall-proof doc-key))))))
+            (partial got-wall-fact doc-key))))))
 
 
 (re-frame/reg-event-fx
-  ::gun-get-all-proofs
+  ::gun-get-all-facts
   (fn [{:keys [db]} [_ redir?]]
     (let [^js/Gun gun-user (:gun-user db)
           ^js/Gun gun      (:gun db)]
       (if gun-user
-        (do (-> (.get gun "user-proofs")
+        (do (-> (.get gun "user-facts")
                 (.map)
                 (.on
-                  (partial got-wall-proofs gun))))
+                  (partial got-wall-facts gun))))
         (do
           (re-frame/dispatch [::init-gun (when redir? "#/wall")])
-          (re-frame/dispatch [::gun-get-all-proofs redir?])))
-      {:db (assoc db :gun-wall-proofs [])})))
+          (re-frame/dispatch [::gun-get-all-facts redir?])))
+      {:db (assoc db :gun-wall-facts [])})))
 
 
 (re-frame/reg-event-fx
-  ::gun-got-wall-proof
+  ::gun-got-wall-fact
   (fn [{:keys [db]} [_ doc-key data tx-id tx-tss]]
 
     (let [data-map (js->clj data)
-          old-map  (:gun-wall-proofs db)
+          old-map  (:gun-wall-facts db)
           d        {:label      (get data-map "label")
                     :user       (get data-map "username")
                     :source-txt (get data-map "secret")
-                    :proofhash  (get data-map "digest")
+                    :facthash  (get data-map "digest")
                     :path       doc-key
                     :tx-id      tx-id
                     :tx-ts      tx-tss}
           new-map  (vec (set (concat (if
-                                       (and (:label d) (:user d) (:proofhash d) tx-id)
+                                       (and (:label d) (:user d) (:facthash d) tx-id)
                                        [d]
                                        [])
                                      old-map)))]
-      {:db (assoc db :gun-wall-proofs new-map)})))
+      {:db (assoc db :gun-wall-facts new-map)})))
+
 
 
 
@@ -505,7 +508,7 @@
 
 
 
-(defn map-proof [result]
+(defn map-fact [result]
   (let [uname        (get result :username)
         recv-acct-id (get result :receiver_account_id)
         send-acct-id (get result :sender_account_id)
@@ -519,10 +522,12 @@
                       :label        pname
                       :user         uname
                       :source-txt   source-txt
-                      :proofhash    phash
+                      :facthash    phash
                       :tx-id        tx-id
                       :tx-ts        tx-ts}]
     d))
+
+
 
 
 (defn ^:export got-username [redirect fetched-username]
@@ -531,7 +536,7 @@
     (re-frame/dispatch [::home-page-user-password-login-success
                         fetched-username
                         redir])
-    (js/console.log "User name: " fetched-username " w redir: " redir)))
+    (js/console.log "user name: " fetched-username " w redir: " redir)))
 
 (re-frame/reg-event-fx
   ::init-gun
@@ -539,7 +544,7 @@
     (if (:gun db)
       {:db db}
       (do
-        (js/console.log "Init gun, redir: " redirect)
+        (js/console.log "init gun, redir: " redirect)
         (try (let [
                    gun      (js/Gun. peer-url)
                    ;gun      (js/Gun. )
@@ -559,4 +564,5 @@
                               :gun-user gun-user)})
              (catch ExceptionInfo e
                (js/console.error "Error init GUN: " (js/JSON.stringify e))))))))
+
 
