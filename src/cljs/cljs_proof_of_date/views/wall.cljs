@@ -3,14 +3,15 @@
             [cljs-proof-of-date.events :as events]
             [cljs-proof-of-date.subs :as subs]
             [re-frame.core :as re-frame]
-            [reagent.core :as reagent]))
+            [reagent.core :as reagent]
+            [clojure.string :as string]))
 
 
 
 (defn wall-title []
   [re-com/title
-   :label "This is the Wall Page."
-   :level :level1])
+   :label "All Facts:"
+   :level :level3])
 
 
 (defn link-to-home-page []
@@ -56,14 +57,19 @@
 
 (def gun-cols
   [{:id :user :header-label "User" :row-label-fn :user :width 100 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :fact-url :header-label "URL" :row-label-fn :fact-url :width 100 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :label :header-label "Label" :row-label-fn :label :width 100 :align "left" :vertical-align "middle" :sort-by true}
+   ;{:id :fact-url :header-label "URL" :row-label-fn :fact-url :width 100 :align "left" :vertical-align "middle" :sort-by true}
+   {:id :label :header-label "Label" :row-label-fn :label :width 150 :align "left" :vertical-align "middle" :sort-by true}
    {:id :source-txt :header-label "Source Text" :row-label-fn :source-txt :width 150 :align "left" :vertical-align "middle" :sort-by true}
 
+   {:id :proof-hashgraph-explore-url :header-label "Hashgraph URL" :row-label-fn :proof-hashgraph-explore-url :width 150 :align "left" :vertical-align "middle" :sort-by true}
+   {:id :proof-hashgraph-tx-id :header-label "Hashgraph ID" :row-label-fn :proof-hashgraph-tx-id :width 150 :align "left" :vertical-align "middle" :sort-by true}
+   {:id :proof-hashgraph-tx-ts :header-label "Hashgraph TS" :row-label-fn :proof-hashgraph-tx-ts :width 150 :align "left" :vertical-align "middle" :sort-by true}
+
    ;{:id :path :header-label "Path" :row-label-fn :path :width 200 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :tx-ts :header-label "TxTs" :row-label-fn :tx-ts :width 400 :align "left" :vertical-align "middle" :sort-by true}
+
    ;{:id :tx-id :header-label "TxID" :row-label-fn :tx-id :width 270 :align "left" :vertical-align "middle" :sort-by true}
-   {:id :facthash :header-label "Hash" :row-label-fn :facthash :width 500 :align "left" :vertical-align "middle" :sort-by true}])
+   {:id :facthash :header-label "Hash" :row-label-fn :facthash :width 500 :align "left" :vertical-align "middle" :sort-by true}
+   {:id :tx-ts :header-label "Created" :row-label-fn :tx-ts :width 300 :align "left" :vertical-align "middle" :sort-by true}])
 
 
 
@@ -87,12 +93,25 @@
     (reset! wall-gun-table* (vec
                               (map
                                 #(assoc % :fact-url [re-com/hyperlink-href
-                                                      :label "fact"
-                                                      :href (str "#/fact/"
-                                                                 (goog.string/replaceAll
-                                                                   (:path %)
-                                                                   "/"
-                                                                   "|"))])
+                                                     :label "fact"
+                                                     :href (str "#/fact/"
+                                                                (goog.string/replaceAll
+                                                                  (:path %)
+                                                                  "/"
+                                                                  "|"))]
+                                          :proof-hashgraph-explore-url
+                                          (when (:proof-hashgraph-tx-id %)
+                                            [re-com/hyperlink-href
+                                             :label "Hashgraph"
+                                             :href (str "https://testnet.dragonglass.me/hedera/transactions/"
+                                                        (->
+                                                          (:proof-hashgraph-tx-id %)
+                                                          (goog.string/replaceAll "@" "")
+                                                          (goog.string/replaceAll "." "")
+
+                                                          ))])
+
+                                          )
                                 @all-gun-facts)))
     [re-com/v-box
      :gap "1em"
@@ -103,7 +122,7 @@
   [re-com/v-box
    :gap "1em"
    :children [
-              ;[wall-title]
+              [wall-title]
 
               (when showlink?
                 [link-to-home-page])

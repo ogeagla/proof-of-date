@@ -14,7 +14,7 @@
 
 (defn dev-setup []
   (when config/debug?
-    (println "dev mode")))
+    (println "!!!!!!!!!  dev mode  !!!!!!!!!")))
 
 (defn ^:dev/after-load mount-root []
   (re-frame/clear-subscription-cache!)

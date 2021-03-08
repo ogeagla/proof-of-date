@@ -9,7 +9,7 @@
   (crypt/byteArrayToHex bytes-in))
 
 (defn get-sha256-str [input-str]
-  (js/console.warn "compute sha256 :" input-str)
+  (js/console.log "compute sha256 :" input-str)
   (let [sha        (Sha256.)
         _          (-> sha
                      (.update input-str))

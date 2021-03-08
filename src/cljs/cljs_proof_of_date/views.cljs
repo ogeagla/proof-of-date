@@ -14,16 +14,24 @@
 ;; main
 
 (defn logout []
-  (let [user (re-frame/subscribe [::subs/home-page-user])
-        ]
+  (let [user (re-frame/subscribe [::subs/home-page-user])]
     (when @user
-      [re-com/button
-       :label "logout"
-       :on-click
-       (fn []
-         (js/console.log "log out: " @user)
-         (re-frame/dispatch-sync [::events/home-page-user-password-logout
-                                  ]))])))
+      [re-com/v-box
+       :gap "0.5em"
+       :children [
+                  [re-com/button
+                   :label (str "Logout: " @user)
+                   :on-click
+                   (fn []
+                     (js/console.log "log out: " @user)
+                     (re-frame/dispatch-sync [::events/home-page-user-password-logout]))]
+                  [re-com/hyperlink-href
+                   :label "All Facts"
+                   :href (str "#/")]
+                  [re-com/hyperlink-href
+                   :label "User Facts"
+                   :href (str "#/home/" @user)]
+                  ]])))
 
 (defn- panels [panel-name]
   [re-com/v-box
@@ -46,20 +54,6 @@
     [re-com/v-box
      :height "100%"
      :children [[panels @active-panel]]]))
-
-
-
-
-
-
-;; TODO next:
-;; x user can delete a fact entirely
-;; - better fact delete
-;; - donate section
-;; - update wall search panel
-;; - look at orbitdb / 3box
-
-
 
 
 

@@ -14,10 +14,7 @@
      :label (str @name)
      :level :level1]))
 
-(defn link-to-wall-page []
-  [re-com/hyperlink-href
-   :label "See All"
-   :href "#/wall"])
+
 
 (defn set-user-view [user-input-username user-input-password]
   [re-com/h-box
@@ -27,8 +24,7 @@
      :model user-input-username
      :width "100px"
      :on-change #(reset! user-input-username %)]
-
-    [re-com/input-text
+    [re-com/input-password
      :model user-input-password
      :width "100px"
      :on-change #(reset! user-input-password %)]]])
@@ -37,31 +33,34 @@
 (defn action-panel []
   (let [user-input-username (reagent/atom nil)
         user-input-password (reagent/atom nil)
+        user (re-frame/subscribe [::subs/home-page-user])
         login-message       (re-frame/subscribe [::subs/login-message])]
-    [re-com/v-box
-     :gap "0.5em"
-     :children
-     [[re-com/label :label "Enter a username / password: "]
-      [set-user-view user-input-username user-input-password]
-      [re-com/title :label (or @login-message "") :level :level3]
-      [re-com/h-box
+    (when-not @user
+      [re-com/v-box
        :gap "0.5em"
        :children
-       [[re-com/button
-         :label "login"
-         :on-click
-         (fn []
-           (js/console.log "log ing: " @user-input-username @user-input-password)
-           (re-frame/dispatch-sync [::events/home-page-user-password-login
-                                    @user-input-username @user-input-password false]))]
+       [[re-com/label :label "Enter a username / password: "]
+        [set-user-view user-input-username user-input-password]
+        [re-com/title :label (or @login-message "") :level :level3]
+        [re-com/h-box
+         :gap "0.5em"
+         :children
+         [[re-com/button
+           :label "login"
+           :on-click
+           (fn []
+             (js/console.log "log ing: " @user-input-username @user-input-password)
+             (re-frame/dispatch-sync [::events/home-page-user-password-login @user-input-username @user-input-password])
+             (set! (.-hash js/window.location) (str "#/home/" @user-input-username)))]
 
-        [re-com/button
-         :label "signup"
-         :on-click
-         (fn []
-           (js/console.log "signup: " @user-input-username @user-input-password)
-           (re-frame/dispatch-sync [::events/home-page-user-password-signup
-                                    @user-input-username @user-input-password]))]]]]]))
+          [re-com/button
+           :label "signup"
+           :on-click
+           (fn []
+             (js/console.log "signup: " @user-input-username @user-input-password)
+             (re-frame/dispatch-sync [::events/home-page-user-password-signup
+                                      @user-input-username @user-input-password])
+             (set! (.-hash js/window.location) (str "#/home/" @user-input-username)))]]]]])))
 
 
 (defn home-panel []
@@ -70,6 +69,7 @@
    :children [
               ;[home-title]
               ;[link-to-wall-page]
+
               [action-panel]
               [wall-view/wall-panel false]]])
 

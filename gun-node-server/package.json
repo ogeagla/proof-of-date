@@ -10,6 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hashgraph/sdk": "^2.0.13",
+    "dotenv": "^8.2.0",
     "gun": "^0.2020.520"
   }
 }

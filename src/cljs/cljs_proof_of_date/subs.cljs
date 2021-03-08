@@ -17,21 +17,11 @@
  (fn [db _]
    (:login-message db)))
 
-(re-frame/reg-sub
- ::re-pressed-example
- (fn [db _]
-   (:re-pressed-example db)))
 
 (re-frame/reg-sub
   ::home-page-fact-editing
   (fn [db _]
     (:home-page-add-fact-editing db)))
-
-
-(re-frame/reg-sub
-  ::home-page-unlock-fact-editing
-  (fn [db _]
-    (:home-page-fact-unlock-editing db)))
 
 
 (re-frame/reg-sub
@@ -53,5 +43,5 @@
 (re-frame/reg-sub
   ::home-page-user
   (fn [db _]
-    (:user db)))
+    (:current-username db)))
 
