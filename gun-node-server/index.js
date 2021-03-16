@@ -4,6 +4,8 @@ const SEA = Gun.SEA;
 
 require('gun/lib/not.js');
 
+require("dotenv").config();
+
 SEA.certify = SEA.certify || (async (certificants, policy = {}, authority, cb, opt = {}) => {
     try {
         /*
@@ -92,7 +94,7 @@ const port = 8765;
 
 const server = require('http').createServer().listen(port);
 
-const gun = Gun({web: server});
+const gun = Gun({web: server, file: 'gun_db'});
 
 let serverPair = null;
 let browserPair = null;
@@ -101,11 +103,12 @@ let browserPair = null;
 console.log(`Server started on port: ${port}`);
 console.log(`Gun: ${gun}`);
 
+const serverUname = process.env.SERVER_USER;
+const serverPwd = process.env.SERVER_PASS;
+const browserUname = process.env.BROWSER_USER;
+const browserPwd = process.env.BROWSER_PASS;
 
-const serverUname = 'server';
-const serverPwd = 'serverpass';
-const browserUname = 'browser';
-const browserPwd = 'browserpass';
+
 let gunServerUser;
 let gunBrowserUser;
 
@@ -167,7 +170,7 @@ function boot() {
     const checkUntilUsersDone = async () => {
 
         if (browserPair === null || serverPair === null) {
-            setTimeout(checkUntilUsersDone, 100);
+            setTimeout(checkUntilUsersDone, 500);
         } else {
             console.log(`Got both pub keys`);
 
@@ -175,19 +178,22 @@ function boot() {
                 // [browserPair.pub],
                 browserPair,
                 // "*",
+
+                // TODO how to make this read-only access?
                 {
-                    "*": "wall-factsv2",
+                    "*": "wall-facts",
                     "+": "*"
                 },
-                // {"#":{"*": "wall-factsv2"}},
+                // {"#":{"*": "wall-facts"}},
                 serverPair,
                 (certRes) => {
 
                     console.log(`Cert finish res: ${JSON.stringify(certRes)}`);
 
-                    console.log(`Got cerify cert, starting listeners...`);
-
+                    console.log(`~~~~~~~~~ Starting Server Listener...`);
                     require('./index_server_user').boot(gun, gunServerUser);
+
+                    console.log(`~~~~~~~~~ Starting Hashgraph Listener...`);
                     require('./index_hashgraph').boot(gunServerUser);
                 },
                 {
@@ -200,7 +206,7 @@ function boot() {
 
     }
     createBrowserUser();
-    checkUntilUsersDone().then(console.log);
+    checkUntilUsersDone();
 
 }
 

@@ -6,6 +6,7 @@
    [secretary.core :as secretary]
    [goog.events :as gevents]
    [re-frame.core :as re-frame]
+   [cljs-proof-of-date.lib.gun :as gunlib]
    [re-pressed.core :as rp]
    [cljs-proof-of-date.events :as events]))
 
@@ -22,36 +23,27 @@
   ;; --------------------
   ;; define routes here
   (defroute "/" []
-
-
-    (re-frame/dispatch-sync [::events/init-gun-and-users false :gun-browser-user [::events/gun-get-browser-facts]])
+    (re-frame/dispatch-sync [::events/set-active-fact nil])
+    (re-frame/dispatch-sync [::events/init-gun-and-users nil false ::gunlib/browser-user [::events/gun-get-browser-facts]])
     (re-frame/dispatch [::events/set-active-panel :home-panel]))
 
 
+  (defroute "/fact/:key-id" [key-id]
+    (js/console.log "Fact route: " key-id)
+    (re-frame/dispatch-sync [::events/set-active-fact key-id])
+    (re-frame/dispatch-sync [::events/init-gun-and-users key-id false ::gunlib/browser-user [::events/gun-get-browser-facts]])
+    (re-frame/dispatch [::events/set-active-panel :fact-panel]))
 
 
+  (defroute "/user/:username" [username]
 
-
-  ;; TODO make the fact route work again
-  ;(defroute "/fact/:key-id" [key-id]
-  ;  (js/console.log "Fact route: " key-id)
-  ;  (re-frame/dispatch-sync [::events/gun-get-fact key-id true ])
-  ;  (re-frame/dispatch [::events/set-active-panel :fact-panel]))
-
-
-
-  (defroute "/home/:username" [username]
-
-    (js/console.log "Home user route: " username)
-    (re-frame/dispatch-sync [::events/init-gun-and-users false :gun-app-user [::events/gun-get-user-facts username]])
-    (re-frame/dispatch [::events/set-active-panel :user-panel])
-    )
+    (re-frame/dispatch-sync [::events/home-page-cancel-fact-btn-press false])
+    (re-frame/dispatch-sync [::events/set-active-fact nil])
+    (re-frame/dispatch-sync [::events/init-gun-and-users nil false ::gunlib/app-user [::events/gun-get-user-facts username]])
+    (re-frame/dispatch [::events/set-active-panel :user-panel]))
 
 
   ;; --------------------
   (hook-browser-navigation!))
 
 
-
-
-;; TODO: now deploy needs a hokey pokey to copypaste the server PK in app code

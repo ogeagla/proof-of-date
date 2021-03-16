@@ -1,26 +1,90 @@
 .rc-simple-v-table-wrapper {
-  padding: 0px !important;
+  padding: 10px !important;
+  background-clip: content-box;
+  box-shadow: inset 0 0 0 10px #03506f;
 }
 
 body {
-  background-color: lightgrey;
-  color: black;
+  background-color: #0a043c;
+  color: #ffe3de;
 }
 
-.rc-v-table {
-  background-color: lightgrey;
-  color: black;
-  padding: 0px;
+.rc-simple-v-table-column-header {
+  background-color: #03506f;
 }
 
-.wall-table {
-  height: 20000px;
+path {
+  stroke: #ffe3de;
+  fill: #ffe3de;
 }
 
-.my-random-class {
-  color: red;
+a {
+  color: #a3ddcb;
+}
+
+.rc-tabs {
+  background-color: #0a043c;
+}
+
+.nav-tabs>li.active>a {
+  background-color: #0a043c;
+  color: #a3ddcb;
+}
+
+.nav-tabs>li.active>a:hover {
+  background-color: #03506f;
+  color: #a3ddcb;
+}
+
+.nav-tabs>li>a:hover {
+  background-color: #03506f;
+  color: #a3ddcb;
+}
+
+input {
+  color: #a3ddcb !important;
+  background-color: #03506f !important;
+}
+
+.popover-content {
+  background-color: #03506f;
+  color: #ffe3de;
+}
+
+.popover-title {
+  background-color: #03506f;
+  color: #ffe3de;
+}
+
+.level3 {
+  color: #ffe3de;
+}
+
+.level2 {
+  color: #ffe3de;
 }
 
 .level1 {
+  color: #ffe3de;
+}
 
+.rc-v-table {
+  background-color: #03506f;
+  color: #ffe3de;
+  padding: 0px;
+}
+
+.rc-button:hover {
+  background-color: #a3ddcb;
+  color: #03506f;
+}
+
+.rc-button:disabled {
+  background-color: #0a043c;
+  color: #a3ddcb;
+}
+
+.rc-button {
+  background-color: #03506f;
+  color: #a3ddcb;
 }

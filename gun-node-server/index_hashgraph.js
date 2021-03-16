@@ -30,7 +30,7 @@ async function proveFact(factKey, fact) {
         console.error(`Hashgraph gunuser not found: `, gunUser);
     }
 
-    console.log(`HASHGRAPH PROVE FACT BEGIN ${JSON.stringify(fact)}`);
+    console.log(`HASHGRAPH PROVE FACT BEGIN user: ${fact['username']} , label: ${fact['label']}`);
     try {
         const userDat = `${fact['username']}|${fact['label']}`.slice(0, 32);
 
@@ -40,7 +40,6 @@ async function proveFact(factKey, fact) {
             .setMaxTransactionFee(Hbar.fromTinybars(200000))
             .setTransactionMemo(`${userDat}|${fact['digest']}`) // max 100 chars
             .execute(client);
-
 
         const record = await transferTransactionResponse.getRecord(client);
         const txTs = record.consensusTimestampstamp.seconds.toString();
@@ -58,8 +57,6 @@ async function proveFact(factKey, fact) {
             'proof-hashgraph-tx-id': txId,
             'proof-hashgraph-tx-ts': txTs,
         };
-
-
 
         return proofData;
     } catch (e) {
@@ -80,7 +77,10 @@ async function setupRecvUser(gunServerUser) {
 
     const words = await Mnemonic.generate();
     const newAccountPrivateKey = await PrivateKey
-        .fromMnemonic(words, "passworf");
+
+        // TODO CRITICAL: get this from dotenv:
+
+        .fromMnemonic(words, process.env.MY_ACCOUNT_PASSWORD);
     const newAccountPublicKey = newAccountPrivateKey.publicKey;
 
     const newAccountTransactionId = await new AccountCreateTransaction()
@@ -123,23 +123,32 @@ async function boot(gunServerUser) {
     client = Client.forTestnet();
 
     client.setOperator(masterAccountId, masterPrivateKey);
-    console.log(`Got client for master acct: `, client.network);
+    if (!client.network) {
+        console.error(`Could not get client for master acct: `, client);
+        process.exit(1)
+    }
+
+    console.log(`HG boot: `, gunUser.is.alias);
+
+    // TODO FIXME why do i need to start the server twice when there is no db in order to make calls below?
 
     gunUser
         .get('creds-hashgraph')
         .get('active')
         .not((notFnd) => {
 
+            console.log(`Need to set up creds for HG user`);
             setupRecvUser(gunUser);
         })
         .once((credVal, credKey) => {
             if (!credVal) {
                 return;
             }
-            console.log(`Already have creds: ${credVal['pubKey']}, ${credVal['acctId']} ${credVal['privKey']}`);
+            console.log(`Already HG have creds: pubk: ${credVal['pubKey']}, acctId: ${credVal['acctId']}`);
 
             loadRecvUser(credVal);
-        })
+        });
+
 }
 
 module.exports = {boot, proveFact};

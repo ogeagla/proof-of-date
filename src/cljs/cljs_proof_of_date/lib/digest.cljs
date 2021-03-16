@@ -1,4 +1,4 @@
-(ns cljs-proof-of-date.digest
+(ns cljs-proof-of-date.lib.digest
   (:require [goog.crypt :as crypt])
   (:import goog.crypt.Sha256))
 
@@ -9,9 +9,11 @@
   (crypt/byteArrayToHex bytes-in))
 
 (defn get-sha256-str [input-str]
-  (js/console.log "compute sha256 :" input-str)
-  (let [sha        (Sha256.)
-        _          (-> sha
+  (if (or (nil? input-str)
+          (= "" input-str))
+    nil
+    (let [sha    (Sha256.)
+          _      (-> sha
                      (.update input-str))
-        digest     (bytes->hex (.digest sha))]
-    digest))
+          digest (bytes->hex (.digest sha))]
+      digest)))

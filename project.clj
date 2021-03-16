@@ -4,10 +4,10 @@
                   :exclusions [com.google.javascript/closure-compiler-unshaded
                                org.clojure/google-closure-library
                                org.clojure/google-closure-library-third-party]]
-                 [thheller/shadow-cljs "2.11.20"]
+                 [thheller/shadow-cljs "2.11.23"]
                  [reagent "1.0.0"]
                  [re-frame "1.2.0"]
-                 [day8.re-frame/tracing "0.6.0"]
+                 [day8.re-frame/tracing "0.6.2"]
                  [day8.re-frame/http-fx "0.2.3"]
                  [re-com "2.13.2"]
                  [clj-commons/secretary "1.2.4"]
@@ -21,20 +21,21 @@
                  [ring/ring-json "0.5.0"]
                  [ring-cors "0.1.13"]
 
-                 [diehard "0.10.3"]
                  [metabase/throttle "1.0.2"]
 
                  [re-pressed "0.3.1"]
                  [breaking-point "0.1.2"]
 
+                 [org.clojure/core.async "1.3.610"]
+
+                 [com.hedera.hashgraph/sdk "2.0.5-beta.4"]
                  [io.grpc/grpc-netty-shaded "1.36.0"
                   :exclusions [
                                com.google.errorprone/error_prone_annotations
                                ;io.grpc/grpc-core
                                ;io.grpc/grpc-api
                                ]]
-                 [io.github.cdimascio/java-dotenv "5.2.2"]
-                 ]
+                 [io.github.cdimascio/java-dotenv "5.2.2"]]
 
   :plugins [[lein-shadow "0.3.1"]
             [lein-garden "0.3.0"]
@@ -51,8 +52,7 @@
             [venantius/yagni "0.1.7"]
             [lein-check-namespace-decls "1.0.2"]
             [docstring-checker "1.1.0"]
-            [lein-check-namespace-decls "1.0.2"]
-            ]
+            [lein-check-namespace-decls "1.0.2"]]
 
 
   :ring {:handler cljs-proof-of-date.handler/handler}
@@ -61,7 +61,7 @@
 
   :source-paths ["src/clj" "src/cljs"]
 
-  :test-paths   ["test/cljs"]
+  :test-paths   ["test/cljs" "test/clj"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"
@@ -82,10 +82,14 @@
                                :modules {:app {:init-fn cljs-proof-of-date.core/init
                                                :preloads [devtools.preload
                                                           day8.re-frame-10x.preload]}}
-                               :dev {:compiler-options {:closure-defines {re-frame.trace.trace-enabled? true
+                               :install-deps true
+                               :npm-deps {:gun-avatar "1.2.3"
+                                          :qr-encode "0.3.0"}
+
+                               :dev {:compiler-options {:closure-defines {"goog.DEBUG" true
+                                                                          re-frame.trace.trace-enabled? true
                                                                           day8.re-frame.tracing.trace-enabled? true}}}
-                               :release {
-                                         :compiler-options {
+                               :release {:compiler-options {:closure-defines {"goog.DEBUG" false}
                                                             ;:optimizations :whitespace
                                                             ;:pseudo-names true
                                                             ;:pretty-print true
@@ -96,8 +100,7 @@
 
                                :devtools {:http-root "resources/public"
                                           :http-port 8280
-                                          :http-handler cljs-proof-of-date.handler/dev-handler
-                                          }}
+                                          :http-handler cljs-proof-of-date.handler/dev-handler}}
                          :browser-test
                          {:target :browser-test
                           :ns-regexp "-test$"

@@ -35,13 +35,18 @@
     (:gun-wall-facts db)))
 
 (re-frame/reg-sub
-  ::fact-page-gun-fact
+  ::fact-page-gun-fact-id
   (fn [db _]
-    (:gun-fact db)))
+    (:active-fact-id db)))
 
 
 (re-frame/reg-sub
   ::home-page-user
   (fn [db _]
     (:current-username db)))
+
+(re-frame/reg-sub
+  ::search-txt
+  (fn [db _]
+    (:search-txt db)))
 

@@ -1,17 +1,17 @@
 ;(function(){
 
-  /* UNBUILD */
-  function USE(arg, req){
-    return req? require(arg) : arg.slice? USE[R(arg)] : function(mod, path){
-      arg(mod = {exports: {}});
-      USE[R(path)] = mod.exports;
-    }
-    function R(p){
-      return p.split('/').slice(-1).toString().replace('.js','');
-    }
-  }
-  if(typeof module !== "undefined"){ var MODULE = module }
-  /* UNBUILD */
+	/* UNBUILD */
+	function USE(arg, req){
+		return req? require(arg) : arg.slice? USE[R(arg)] : function(mod, path){
+			arg(mod = {exports: {}});
+			USE[R(path)] = mod.exports;
+		}
+		function R(p){
+			return p.split('/').slice(-1).toString().replace('.js','');
+		}
+	}
+	if(typeof module !== "undefined"){ var MODULE = module }
+	/* UNBUILD */
 
 	;USE(function(module){
 		// Generic javascript utilities.
@@ -52,15 +52,15 @@
 		}
 		Type.text.hash = function(s, c){ // via SO
 			if(typeof s !== 'string'){ return }
-	    c = c || 0;
-	    if(!s.length){ return c }
-	    for(var i=0,l=s.length,n; i<l; ++i){
-	      n = s.charCodeAt(i);
-	      c = ((c<<5)-c)+n;
-	      c |= 0;
-	    }
-	    return c;
-	  }
+			c = c || 0;
+			if(!s.length){ return c }
+			for(var i=0,l=s.length,n; i<l; ++i){
+				n = s.charCodeAt(i);
+				c = ((c<<5)-c)+n;
+				c |= 0;
+			}
+			return c;
+		}
 		Type.list = {is: function(l){ return (l instanceof Array) }}
 		Type.list.slit = Array.prototype.slice;
 		Type.list.sort = function(k){ // creates a new sort function based off some key
@@ -172,27 +172,27 @@
 		module.exports = function onto(tag, arg, as){
 			if(!tag){ return {to: onto} }
 			var u, tag = (this.tag || (this.tag = {}))[tag] ||
-			(this.tag[tag] = {tag: tag, to: onto._ = {
-				next: function(arg){ var tmp;
-					if((tmp = this.to)){
-						tmp.next(arg);
-				}}
-			}});
+				(this.tag[tag] = {tag: tag, to: onto._ = {
+						next: function(arg){ var tmp;
+							if((tmp = this.to)){
+								tmp.next(arg);
+							}}
+					}});
 			if('function' == typeof arg){
 				var be = {
 					off: onto.off ||
-					(onto.off = function(){
-						if(this.next === onto._.next){ return !0 }
-						if(this === this.the.last){
-							this.the.last = this.back;
-						}
-						this.to.back = this.back;
-						this.next = onto._.next;
-						this.back.to = this.to;
-						if(this.the.last === this.the){
-							delete this.on.tag[this.the.tag];
-						}
-					}),
+						(onto.off = function(){
+							if(this.next === onto._.next){ return !0 }
+							if(this === this.the.last){
+								this.the.last = this.back;
+							}
+							this.to.back = this.back;
+							this.next = onto._.next;
+							this.back.to = this.to;
+							if(this.the.last === this.the){
+								delete this.on.tag[this.the.tag];
+							}
+						}),
 					to: onto._,
 					next: arg,
 					the: tag,
@@ -276,8 +276,8 @@
 			if(v === null){ return true } // "deletes", nulling out keys.
 			if(v === Infinity){ return false } // we want this to be, but JSON does not support it, sad face.
 			if(text_is(v) // by "text" we mean strings.
-			|| bi_is(v) // by "binary" we mean boolean.
-			|| num_is(v)){ // by "number" we mean integers or decimals.
+				|| bi_is(v) // by "binary" we mean boolean.
+				|| num_is(v)){ // by "number" we mean integers or decimals.
 				return true; // simple values are valid.
 			}
 			return Val.link.is(v) || false; // is the value a soul relation? Then it is valid and return it. If not, everything else remaining is an invalid data type. Custom extensions can be built on top of these primitives to support other types.
@@ -380,7 +380,7 @@
 			/*if(perf){
 				t = start + perf.now(); // Danger: Accuracy decays significantly over time, even if precise.
 			} else {*/
-				t = +new Date;
+			t = +new Date;
 			//}
 			if(last < t){
 				return N = 0, last = t + State.drift;
@@ -790,7 +790,7 @@
 			}
 			function map(msg){
 				var DBG; if(DBG = (msg._||'').DBG){ DBG.pa = +new Date; DBG.pm = DBG.pm || +new Date}
-      	var eve = this, root = eve.as, graph = root.graph, ctx = msg._, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp;
+				var eve = this, root = eve.as, graph = root.graph, ctx = msg._, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp;
 				graph[soul] = state_ify(graph[soul], key, state, val, soul); // TODO: Only put in graph if subscribed? Relays vs Browsers?
 				chain(ctx, soul, key, (u !== (tmp = put['=']))? tmp : val, state); // TODO: This should NOT be how the API works, this should be done at an extension layer, but hacky solution to migrate with old code for now.
 				if((tmp = ctx.out) && (tmp = tmp.put)){
@@ -1183,7 +1183,7 @@
 				}
 				tmp = (root.stop || {})[at.id];
 				//if(tmp && tmp[cat.id]){ } else {
-					eve.to.next(msg);
+				eve.to.next(msg);
 				//}
 				relate(cat, msg, at, rel);
 				echo(cat, msg, eve);
@@ -1197,7 +1197,7 @@
 			tmp.is = tmp.is || at.put;
 			tmp[cat.id] = at.put || true;
 			//if(root.stop){
-				eve.to.next(msg)
+			eve.to.next(msg)
 			//}
 			relate(cat, msg, at, rel);
 			echo(cat, msg, eve);
@@ -1349,10 +1349,6 @@
 		Gun.chain.get = function(key, cb, as){
 			var gun, tmp;
 			if(typeof key === 'string'){
-			        if(key.length == 0) {
-			              (as = this.chain())._.err = {err: Gun.log('Invalid zero length string key!', key)};
-			              return null
-			        }
 				var back = this, cat = back._;
 				var next = cat.next || empty;
 				if(!(gun = next[key])){
@@ -1411,7 +1407,7 @@
 			if(cat.soul || cat.has){
 				at.has = key;
 				//if(obj_has(cat.put, key)){
-					//at.put = cat.put[key];
+				//at.put = cat.put[key];
 				//}
 			}
 			return at;
@@ -1640,7 +1636,7 @@
 		}
 		var G = String.fromCharCode(31);
 		function soul(id, as, msg, eve){
-			var as = as.as, path = as.p, ref = as.ref, cat = as.at, pat = [], sat; as = as.as;
+			var as = as.as, path = as.p, ref = as.ref, cat = as.at, pat = []; as = as.as;
 			ref.back(function(at){
 				if(sat = at.soul || at.link || at.dub){ return sat }
 				pat.push(at.has || at.get);
@@ -1826,7 +1822,7 @@
 			// TODO: super should not be in core code, bring AXE up into core instead to fix?
 			if(!to && u === data && !at.root.opt.super && eve.ack <= (opt.acks || Object.keys(at.root.opt.peers).length)){ return }
 			if((!to && (u === data || at.soul || at.link || (link && !(0 < link.ack))))
-			|| (u === data && !at.root.opt.super && (tmp = Object.keys(at.root.opt.peers).length) && (!to && (link||at).ack < tmp))){
+				|| (u === data && !at.root.opt.super && (tmp = Object.keys(at.root.opt.peers).length) && (!to && (link||at).ack < tmp))){
 				tmp = (eve.wait = {})[at.id] = setTimeout(function(){
 					val.call({as:opt}, msg, eve, tmp || 1);
 				}, opt.wait || 99);
@@ -2045,15 +2041,15 @@
 				this.to.next(msg);
 				var lex = msg.get, soul, data, u;
 				function to(){
-				if(!lex || !(soul = lex['#'])){ return }
-				//if(0 >= msg.cap){ return }
-				var has = lex['.'];
-				data = disk[soul] || u;
-				if(data && has){
-					data = Gun.state.to(data, has);
-				}
-				//if(!data && !Gun.obj.empty(opt.peers)){ return } // if data not found, don't ack if there are peers. // Hmm, what if we have peers but we are disconnected?
-				root.on('in', {'@': msg['#'], put: Gun.graph.node(data), lS:1});// || root.$});
+					if(!lex || !(soul = lex['#'])){ return }
+					//if(0 >= msg.cap){ return }
+					var has = lex['.'];
+					data = disk[soul] || u;
+					if(data && has){
+						data = Gun.state.to(data, has);
+					}
+					//if(!data && !Gun.obj.empty(opt.peers)){ return } // if data not found, don't ack if there are peers. // Hmm, what if we have peers but we are disconnected?
+					root.on('in', {'@': msg['#'], put: Gun.graph.node(data), lS:1});// || root.$});
 				};
 				Gun.debug? setTimeout(to,1) : to();
 			});
@@ -2385,10 +2381,10 @@
 
 		function it(msg){ return msg || {_: msg._, '##': msg['##']} } // HNPERF: Only need some meta data, not full reference (took up too much memory). // HNPERF: Garrrgh! We add meta data to msg over time, copying the object happens to early.
 
-	  var empty = {}, ok = true, u;
+		var empty = {}, ok = true, u;
 		var obj_is = Type.obj.is, obj_map = Type.obj.map;
 
-	  try{ module.exports = Mesh }catch(e){}
+		try{ module.exports = Mesh }catch(e){}
 
 	})(USE, './adapters/mesh');
 
